@@ -1,0 +1,80 @@
+name: Attach rate · aggiornamento notturno
+
+on:
+  schedule:
+    - cron: "30 6 * * *"   # 06:30 UTC = 02:30 a New York: la giornata dello shop (fuso America/New_York) è chiusa
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Giorni da ricalcolare all'indietro"
+        default: "7"
+      backfill:
+        description: "Rigenera tutto lo storico con la bulk operation (da fare una volta, prima del primo giro notturno)"
+        type: boolean
+        default: false
+
+# Il token Shopify vive nei repository secrets (SHOPIFY_SHOP, SHOPIFY_ADMIN_TOKEN): non entra mai nel sito pubblicato.
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: attach-rate-nightly
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test delle regole di calcolo
+        run: python3 -m unittest discover -s tests
+
+      - name: Raccolta dati da Shopify
+        env:
+          SHOPIFY_SHOP: ${{ secrets.SHOPIFY_SHOP }}
+          SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
+        run: |
+          if [ "${{ inputs.backfill }}" = "true" ]; then
+            python3 collect.py backfill
+          else
+            python3 collect.py daily --days "${{ inputs.days || '7' }}"
+          fi
+
+      - name: Commit dei JSON aggiornati
+        run: |
+          git config user.name "attach-rate-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "nessuna variazione nei dati"
+          else
+            git commit -m "data: aggiornamento $(date -u +%F)"
+            git push
+          fi
+
+      - name: Prepara il sito statico
+        run: |
+          mkdir -p _site
+          cp index.html app.js calc.js render.js _site/
+          cp -r data _site/data
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: collect
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

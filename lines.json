@@ -1,0 +1,129 @@
+{
+  "_readme": [
+    "Mappa prodotto -> linea. Si raggruppa SEMPRE per product ID (i titoli cambiano: es. 'Bespoke Monogram Bracelet' -> 'Bespoke Charm Bracelet',",
+    "'For Him | Bespoke Monogram Bracelet' -> 'Mens Braided Cord Monogram Bracelet', handle for-him-monogram-bracelet).",
+    "title/handle qui sotto sono solo annotazioni per chi legge: collect.py usa solo gli id.",
+    "Per aggiungere un prodotto nuovo: `python3 collect.py discover` elenca il catalogo e segnala i configurabili non mappati.",
+    "cap = numero massimo di pietre consentito dalla scheda prodotto (non ricavabile dagli ordini)."
+  ],
+  "timezone": "America/New_York",
+  "testProduct": {
+    "label": "For Her | Bespoke Monogram Necklace",
+    "ids": [8677371707724]
+  },
+  "lines": {
+    "Collane": {
+      "cap": 6,
+      "products": [
+        {"id": 8677371707724,  "title": "For Her | Bespoke Monogram Necklace", "handle": "monogram-necklace"},
+        {"id": 9002919395660,  "title": "For Him | Bespoke Monogram Necklace", "handle": "for-him-bespoke-monogram-necklace"},
+        {"id": 9108572176716,  "title": "For Mom | Bespoke Monogram Necklace", "handle": "for-mom-bespoke-monogram-necklace"},
+        {"id": 14686494523724, "title": "Family Initials Monogram Necklace", "handle": "family-initials-monogram-necklace"},
+        {"id": 14860038177100, "title": "For Him | Family Initials Monogram Necklace", "handle": "for-him-family-initials-monogram-necklace"},
+        {"id": 14686783701324, "title": "For Her | Family Initials Monogram Necklace", "handle": "initials-monogram-necklace-family-pack"},
+        {"id": 14923748016460, "title": "Pet Monogram Necklace", "handle": "pet-monogram-necklace"},
+        {"id": 9174182166860,  "title": "Bespoke Intertwined Initials Necklace", "handle": "initials-necklace"},
+        {"id": 14835177161036, "title": "For Him | Bespoke Intertwined Initials Necklace", "handle": "initials-necklace-for-him"},
+        {"id": 9173074182476,  "title": "Bespoke Double Zodiac Necklace", "handle": "bespoke-zodiac-jewelry"},
+        {"id": 14777316213068, "title": "Double Zodiac Necklace | Custom Yin & Yang", "handle": "double-zodiac-necklace-yin-yang"},
+        {"id": 14835162743116, "title": "For Him | Double Zodiac Necklace | Custom Yin & Yang", "handle": "double-zodiac-necklace-yin-yang-for-him"},
+        {"id": 14836722401612, "title": "Custom Yin & Yang Zodiac Necklace", "handle": "bundle-double-zodiac-yin-yang"},
+        {"id": 9282203255116,  "title": "Bespoke Monogram Necklace", "handle": "bundle-monogram"},
+        {"id": 9307700658508,  "title": "Bespoke Monogram Necklace For Her", "handle": "couple-jewelry"},
+        {"id": 9272464212300,  "title": "Bespoke Monogram Necklace With His Name", "handle": "for-her-bespoke-monogram-necklace-his-name"},
+        {"id": 9367516283212,  "title": "Hidden Monogram Symbol Necklace", "handle": "hidden-monogram-symbol-necklace"},
+        {"id": 9270588571980,  "title": "Memorial Monogram Necklace", "handle": "memorial-monogram-necklace"},
+        {"id": 9271722934604,  "title": "Memorial Interwined Initials Necklace", "handle": "memorial-interwined-initials-necklace"},
+        {"id": 15524512563532, "title": "The One Date Roman Necklace", "handle": "the-one-date-roman-necklace"},
+        {"id": 15571468517708, "title": "Necklace Charm (ciondolo senza catena, sku CH_FHER_NECKLACE)", "handle": "necklace-charm"},
+        {"id": 14973359325516, "title": "Bridesmaid Gift | Custom Designed Monogram Necklace", "handle": "bridesmaid-gift-custom-designed-monogram-necklace"},
+        {"id": 14968879481164, "title": "For Grandma | Custom Designed Monogram Necklace", "handle": "for-grandma-custom-designed-monogram-necklace"},
+        {"id": 14973892788556, "title": "Draw Your Monogram Necklace", "handle": "custom-designed-bond-to-wear-with-your-drawing"},
+        {"id": 15564279513420, "title": "Bespoke Monogram Necklace | Re-Order Same Design", "handle": "bespoke-monogram-necklace-re-order-same-design"},
+        {"id": 15567641608524, "title": "For Him | Bespoke Monogram Necklace | Re-Order Same Design", "handle": "for-him-bespoke-monogram-necklace-re-order-same-design"},
+        {"id": 15464474050892, "title": "Collab | For Her | Bespoke Monogram Necklace", "handle": "collab-for-her-bespoke-monogram-necklace"},
+        {"id": 15467465638220, "title": "Collab | For Him | Bespoke Monogram Necklace", "handle": "collab-for-him-bespoke-monogram-necklace"},
+        {"id": 15467457249612, "title": "Collab | Family Initials Monogram Necklace", "handle": "collab-family-initials-monogram-necklace"},
+        {"id": 15467468915020, "title": "Collab | Pet Monogram Necklace", "handle": "collab-pet-monogram-necklace"}
+      ]
+    },
+    "Charm Bracelet": {
+      "cap": 4,
+      "products": [
+        {"id": 14694506758476, "title": "Bespoke Charm Bracelet (ex 'Bespoke Monogram Bracelet' fino al 30 apr)", "handle": "bespoke-monogram-bracelet"},
+        {"id": 15572282278220, "title": "Bracelet Charm (ciondolo senza catena, sku bespoke-monogram)", "handle": "bracelet-charm"},
+        {"id": 15713563574604, "title": "Collab | Bespoke Charm Bracelet", "handle": "collab-bespoke-charm-bracelet"}
+      ]
+    },
+    "Keychain": {
+      "cap": 3,
+      "products": [
+        {"id": 9002920411468,  "title": "Bespoke Monogram Keychain", "handle": "bespoke-monogram-keychain"},
+        {"id": 15567642132812, "title": "Bespoke Monogram Keychain | Re-Order Same Design", "handle": "bespoke-monogram-keychain-re-order-same-design"},
+        {"id": 15467448402252, "title": "Collab | Bespoke Monogram Keychain", "handle": "collab-bespoke-monogram-keychain"},
+        {"id": 9232482369868,  "title": "Intertwined Initials Keychain", "handle": "matching-keychain-with-initials"},
+        {"id": 9244009398604,  "title": "Bespoke Double Zodiac Keychain", "handle": "keychain-couple-zodiac"},
+        {"id": 14824202797388, "title": "Double Zodiac Keychain | Custom Yin & Yang", "handle": "double-zodiac-keychain-yin-yang"}
+      ]
+    },
+    "Mens cord": {
+      "cap": 6,
+      "products": [
+        {"id": 15645716218188, "title": "Mens Braided Cord Monogram Bracelet (ex 'For Him | Bespoke Monogram Bracelet' fino al 30 lug)", "handle": "for-him-monogram-bracelet"},
+        {"id": 15732233535820, "title": "Mens Braided Cord Monogram Bracelet | Re-Order Same Design", "handle": "for-him-bespoke-monogram-bracelet-re-order-same-design"},
+        {"id": 15670483616076, "title": "Collab | Mens Braided Cord Monogram Bracelet", "handle": "collab-for-him-bespoke-monogram-bracelet"}
+      ]
+    },
+    "Womens cord": {
+      "cap": 6,
+      "products": [
+        {"id": 15726058307916, "title": "Womens Braided Cord Monogram Bracelet", "handle": "womens-braided-cord-monogram-bracelet"},
+        {"id": 15757823967564, "title": "Collab | Womens Braided Cord Monogram Bracelet", "handle": "collab-womens-braided-cord-monogram-bracelet"}
+      ]
+    },
+    "Kids cord": {
+      "cap": 0,
+      "products": [
+        {"id": 15729645846860, "title": "Kids Braided Cord Monogram Bracelet", "handle": "kids-braided-cord-monogram-bracelet"},
+        {"id": 15757884621132, "title": "Collab | Kids Braided Cord Monogram Bracelet", "handle": "collab-kids-braided-cord-monogram-bracelet"}
+      ]
+    }
+  },
+  "stoneChildren": [
+    {"id": 14927306785100, "title": "Birthstone ($7.90)", "handle": "birthstone-1"},
+    {"id": 15438948401484, "title": "Birthstone (zodiac, $0)", "handle": "birthstone-zodiac"},
+    {"id": 15689729868108, "title": "Necklace Birthstone", "handle": "necklace-birthstone"},
+    {"id": 14694491816268, "title": "Bracelet Birthstone", "handle": "birthstone"},
+    {"id": 15930898841932, "title": "Cord Bracelet Birthstone", "handle": "cord-bracelet-birthstone"}
+  ],
+  "cart": {
+    "scratch":  {"label": "Scratch card", "ids": [14966466380108]},
+    "giftbox":  {"label": "Gift box",     "ids": [9022872453452]},
+    "warranty": {"label": "Garanzia",     "ids": [8681019048268, 8681018196300]},
+    "tip":      {"label": "Mancia",       "ids": [], "_note": "non e' un prodotto: si legge da totalTipReceivedSet o dalla riga 'Tip' senza prodotto"}
+  },
+  "excluded": [
+    {"id": 14694488736076, "title": "Charm", "why": "componente incluso del Charm Bracelet, prezzo mediano $0: non e' un add-on"},
+    {"id": 9334373613900,  "title": "Extra Charm ($18, 2024)", "why": "prodotto legacy, poche decine di pezzi"},
+    {"id": 15564300550476, "title": "For Her | Charmlry Necklace Chain", "why": "catena da $15, non configurabile"},
+    {"id": 15567530099020, "title": "For Him | Charmlry Necklace Chain", "why": "catena da $15, non configurabile"},
+    {"id": 15567532851532, "title": "Charmlry Bracelet Chain", "why": "catena da $15, non configurabile"},
+    {"id": 14688771866956, "title": "Zodiac & Birthstone Necklace", "why": "pietra intrinseca al prodotto (in bozza); esclusa dalla regola 'titolo contiene Necklace'"},
+    {"id": 9370406158668,  "title": "Charmlry Gift Card", "why": "gift card"},
+    {"id": 9370367525196,  "title": "Charmlry Gift Card (pack)", "why": "gift card"},
+    {"id": 15839336137036, "title": "Replacement fee", "why": "servizio"}
+  ],
+  "_unmapped_candidates": [
+    "Prodotti configurabili che la regola del brief NON assegna a nessuna linea. Decidere con il team se aggiungerli:",
+    {"id": 9299591528780,  "title": "Custom-Designed Bond to Wear", "note": "collana senza 'Necklace' nel titolo, ~4.800 pezzi dal 2024"},
+    {"id": 14766425866572, "title": "Custom Family Initials Charm", "note": "tag keychain, ~8.100 pezzi dal 2025"},
+    {"id": 14927361769804, "title": "Monogram Bag Charm", "note": "tag keychain"},
+    {"id": 15007276630348, "title": "Pet Monogram Charm", "note": "tag keychain"},
+    {"id": 15467460657484, "title": "Collab | Custom Family Initials Charm", "note": "tag keychain"},
+    {"id": 15467473076556, "title": "Collab | Pet Monogram Charm", "note": "tag keychain"},
+    {"id": 15756742590796, "title": "Family Matching Braided Cord Monogram Set", "note": "set, 1 pezzo"},
+    {"id": 16053784543564, "title": "Jewelry Care Kit", "note": "nuovo upsell (bozza, ago 2026): non tracciato"},
+    {"id": 16075426136396, "title": "Charmlry Jewelry Case", "note": "nuovo upsell (bozza, set 2026): non tracciato"}
+  ],
+  "costs": {"stone": 1.50, "giftbox": 0.75, "scratch": 0.95, "warranty": 0, "tip": 0}
+}

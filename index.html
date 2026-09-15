@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attach rate · Charmlry</title>
+<style>
+  /* Colori: tutti qui. Il JS non contiene esadecimali; la scala di calore della matrice
+     è interpolata a runtime fra --heat-0 e --garnet, quindi cambiando l'accento cambia tutto. */
+  :root{
+    --canvas:#EEF0F3;
+    --panel:#FFFFFF;
+    --ink:#182029;
+    --muted:#6B7684;
+    --faint:#99A2AE;
+    --rule:#DFE3E8;
+    --garnet:#8E2B3C;
+    --garnet-soft:#C98A94;
+    --emerald:#1F6F52;
+    --heat-0:#F3F4F6;            /* estremo pallido della scala di calore */
+    --flat0:#F5F6F8;             /* cella a zero di un add-on di carrello */
+    --up-on-dark:#B7E4CE;        /* variazioni scritte sopra una cella scura */
+    --down-on-dark:#F4C7CD;
+    --flat-on-dark:rgba(255,255,255,.62);
+    --alert-bg:#FBF4F5;
+    --calm-bg:#F2F8F5;
+    --shadow:0 1px 2px rgba(24,32,41,.06), 0 8px 24px rgba(24,32,41,.05);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--canvas);
+    color:var(--ink);
+    font-family:"Inter","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size:15px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum" 1;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 24px 72px}
+  code{font-size:.92em;background:rgba(24,32,41,.06);padding:1px 5px;border-radius:5px}
+
+  /* ---------- header ---------- */
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:22px}
+  h1{font-size:27px;line-height:1.1;font-weight:640;letter-spacing:-.022em;margin:0}
+  .sub{color:var(--muted);font-size:13.5px;margin-top:5px;min-height:1.4em}
+  .periods{display:flex;gap:2px;background:#E3E6EA;padding:3px;border-radius:9px}
+  .periods button{
+    border:0;background:transparent;color:var(--muted);
+    font:inherit;font-size:13.5px;font-weight:520;
+    padding:7px 15px;border-radius:7px;cursor:pointer;
+  }
+  .periods button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(24,32,41,.12)}
+  .periods button:focus-visible{outline:2px solid var(--garnet);outline-offset:2px}
+  .ctl{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+  .range{display:flex;gap:10px;font-size:12.5px;color:var(--muted)}
+  .range label{display:flex;align-items:center;gap:5px}
+  .range input{
+    font:inherit;font-size:12.5px;color:var(--ink);background:var(--panel);
+    border:1px solid var(--rule);border-radius:7px;padding:4px 7px;
+  }
+  .range input:focus-visible{outline:2px solid var(--garnet);outline-offset:1px}
+
+  /* dove intervenire */
+  .opp{display:grid;grid-template-columns:1fr 76px 22px 76px 116px;gap:0 14px;align-items:center;
+       padding:13px 0;border-top:1px solid var(--rule)}
+  .opp:first-child{border-top:0}
+  .opp .who{font-size:14px;font-weight:560}
+  .opp .who em{font-style:normal;font-weight:430;color:var(--muted)}
+  .opp .who small{display:block;font-size:12px;font-weight:420;color:var(--faint);margin-top:1px}
+  .opp .num{font-size:17px;font-weight:600;text-align:center;letter-spacing:-.02em}
+  .opp .num.b{color:var(--emerald)}
+  .opp .arr{text-align:center;color:var(--faint);font-size:13px}
+  .opp .gain{text-align:right}
+  .opp .gain b{font-size:17px;font-weight:640;letter-spacing:-.02em;display:block}
+  .opp .gain span{font-size:11.5px;color:var(--faint)}
+  .opphead{display:grid;grid-template-columns:1fr 76px 22px 76px 116px;gap:0 14px;
+           font-size:11.5px;color:var(--faint);padding-bottom:8px}
+  .opphead div:nth-child(2),.opphead div:nth-child(4){text-align:center}
+  .opphead div:last-child{text-align:right}
+  @media (max-width:900px){
+    .ctl{align-items:stretch}
+    .opp,.opphead{grid-template-columns:1fr 60px 16px 60px 96px;gap:0 8px}
+    .opp .num,.opp .gain b{font-size:14px}
+  }
+
+  /* ---------- pannelli e matrice ---------- */
+  .panel{background:var(--panel);border-radius:14px;box-shadow:var(--shadow);padding:22px 24px 24px}
+  .panel + .panel{margin-top:18px}
+  .panel h2{font-size:16px;font-weight:600;letter-spacing:-.012em;margin:0 0 3px}
+  .panel p.note{color:var(--muted);font-size:13px;margin:0 0 18px;max-width:64ch}
+
+  .scroll{overflow-x:auto;margin:0 -4px;padding:0 4px}  /* su schermi stretti la matrice scorre, la pagina no */
+  table.matrix{border-collapse:separate;border-spacing:0;width:100%;min-width:560px}
+  table.matrix th{font-weight:520;font-size:12.5px;color:var(--muted);text-align:center;padding:0 0 10px;white-space:nowrap}
+  table.matrix th.rowhead{text-align:left;width:172px}
+  table.matrix td{padding:3px 3px}
+  table.matrix td.rowhead{
+    font-size:14px;font-weight:560;text-align:left;padding-right:14px;white-space:nowrap;
+  }
+  table.matrix td.rowhead span{display:block;font-size:11.5px;font-weight:420;color:var(--faint);letter-spacing:.01em}
+
+  .cell{
+    position:relative;border-radius:9px;padding:11px 6px 9px;text-align:center;cursor:default;
+    transition:transform .12s ease;color:var(--ink);
+  }
+  .cell.dark{color:#fff}
+  .cell .v{font-size:19px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+  .cell .d{font-size:11.5px;font-weight:500;margin-top:2px;line-height:1.2}
+  .cell .d.up{color:var(--emerald)}
+  .cell .d.down{color:var(--garnet)}
+  .cell .d.flat{color:var(--faint)}
+  .cell.dark .d.up{color:var(--up-on-dark)}
+  .cell.dark .d.down{color:var(--down-on-dark)}
+  .cell.dark .d.flat{color:var(--flat-on-dark)}
+  .cell.flat0{background:var(--flat0)}
+  .cell.na{background:repeating-linear-gradient(135deg,#F3F4F6 0 6px,#EDEFF2 6px 12px);color:var(--faint)}
+  .cell.na .v{font-size:15px;font-weight:450;color:var(--faint)}
+  .cell.zero{background:#FFF;border:1.5px dashed var(--garnet);color:var(--garnet)}
+  .cell:hover{transform:translateY(-1px)}
+  .cell.thin{opacity:.82}
+  .cell.thin::after{content:'';position:absolute;top:5px;right:6px;width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.45}
+  .up{color:var(--emerald)}
+  .down{color:var(--garnet)}
+  .flat{color:var(--faint)}
+
+  /* ---------- riepilogo ---------- */
+  .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:4px}
+  .summary div{padding:2px 22px}
+  .summary div + div{border-left:1px solid var(--rule)}
+  .summary div:first-child{padding-left:0}
+  .summary .n{font-size:31px;font-weight:640;letter-spacing:-.03em;line-height:1.12}
+  .summary .l{font-size:13px;color:var(--muted);margin-top:3px}
+  .summary .s{font-size:12px;color:var(--faint);margin-top:1px}
+
+  /* ---------- alert ---------- */
+  .alerts{display:flex;flex-direction:column;gap:9px;margin-top:16px}
+  .alert{
+    display:flex;gap:12px;align-items:baseline;
+    border-left:3px solid var(--garnet);background:var(--alert-bg);
+    padding:11px 15px;border-radius:0 9px 9px 0;font-size:13.5px;
+  }
+  .alert b{font-weight:600}
+  .alert.calm{border-left-color:var(--emerald);background:var(--calm-bg)}
+
+  /* ---------- trend ---------- */
+  .trends{display:grid;grid-template-columns:repeat(5,1fr);gap:20px}
+  .trend .t{font-size:13px;font-weight:560;margin-bottom:1px}
+  .trend .val{font-size:21px;font-weight:620;letter-spacing:-.025em}
+  .trend .dl{font-size:12px;margin-bottom:7px}
+  .trend svg{display:block;width:100%;height:46px;overflow:visible}
+  .trend svg .line{stroke:var(--garnet)}
+  .trend svg .area{fill:var(--garnet);fill-opacity:.10}
+  .trend svg .dot{fill:var(--garnet)}
+
+  /* ---------- profondità ---------- */
+  .depth{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .dep .t{font-size:13.5px;font-weight:560;margin-bottom:2px}
+  .dep .m{font-size:12px;color:var(--muted);margin-bottom:9px}
+  .bars{display:flex;align-items:flex-end;gap:5px;height:74px}
+  .bars i{flex:1;background:var(--garnet-soft);border-radius:3px 3px 0 0;position:relative;min-height:2px}
+  .bars i.capped{background:var(--garnet)}
+  .bars i.off{background:repeating-linear-gradient(135deg,#EDEFF2 0 4px,#E6E9ED 4px 8px)}
+  .axis{display:flex;gap:5px;margin-top:5px}
+  .axis span{flex:1;text-align:center;font-size:11px;color:var(--faint)}
+
+  /* ---------- A/B test ---------- */
+  .ab-arms{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:6px}
+  .arm{border:1px solid var(--rule);border-radius:12px;padding:14px 16px 13px}
+  .arm-name{font-size:12.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  .arm-rate{font-size:29px;font-weight:640;letter-spacing:-.03em;line-height:1.15;margin-top:4px}
+  .arm-ci{font-size:12px;color:var(--faint)}
+  .arm-n{font-size:13px;color:var(--muted);margin-top:8px}
+  .arm-n b{color:var(--ink);font-weight:600}
+  .arm-src{font-size:12px;color:var(--faint);margin-top:2px}
+  .ab-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:18px 0 14px}
+  .ab-meta > div{padding:2px 18px}
+  .ab-meta > div + div{border-left:1px solid var(--rule)}
+  .ab-meta > div:first-child{padding-left:0}
+  .ab-meta .k{display:block;font-size:12px;color:var(--muted)}
+  .ab-meta b{display:block;font-size:20px;font-weight:620;letter-spacing:-.02em;margin:2px 0 1px}
+  .ab-meta b.bad{color:var(--garnet)}
+  .ab-meta .s{display:block;font-size:11.5px;color:var(--faint);line-height:1.35}
+
+  .tip{
+    position:fixed;z-index:20;pointer-events:none;opacity:0;transition:opacity .1s;
+    background:var(--ink);color:#fff;font-size:12.5px;line-height:1.5;
+    padding:8px 11px;border-radius:8px;max-width:260px;box-shadow:0 6px 20px rgba(0,0,0,.22)
+  }
+  footer{color:var(--faint);font-size:12.5px;margin-top:26px;line-height:1.6}
+  #status{margin-bottom:18px}
+  @media (max-width:900px){
+    .summary{grid-template-columns:repeat(2,1fr);gap:18px 0}
+    .summary div:nth-child(3){padding-left:0;border-left:0}
+    .trends{grid-template-columns:repeat(2,1fr)}
+    .depth{grid-template-columns:1fr}
+    .ab-arms{grid-template-columns:1fr}
+    .ab-meta{grid-template-columns:repeat(2,1fr);gap:14px 0}
+    .ab-meta > div:nth-child(3){padding-left:0;border-left:0}
+    table.matrix th.rowhead,table.matrix td.rowhead{width:auto}
+    .cell .v{font-size:16px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>Attach rate degli upsell</h1>
+      <div class="sub" id="rangeLabel">Caricamento dei dati…</div>
+    </div>
+    <div class="ctl needs-data" hidden>
+      <div class="periods" id="presets" role="group" aria-label="Periodo"></div>
+      <div class="range">
+        <label>dal <input type="date" id="from"></label>
+        <label>al <input type="date" id="to"></label>
+      </div>
+    </div>
+  </header>
+
+  <div id="status" hidden></div>
+
+  <section class="panel needs-data" hidden>
+    <h2>Quanti clienti aggiungono qualcosa</h2>
+    <p class="note">Percentuale di ordini o di pezzi che contengono l'add-on, con la variazione rispetto al periodo precedente di pari durata.</p>
+    <div class="scroll"><table class="matrix" id="matrix"></table></div>
+  </section>
+
+  <section class="panel needs-data" hidden>
+    <h2>Il quadro del periodo</h2>
+    <div class="summary" id="summary"></div>
+    <div class="alerts" id="alerts"></div>
+  </section>
+
+  <section class="panel needs-data" hidden>
+    <h2>Dove conviene intervenire</h2>
+    <p class="note">Ogni riga confronta un add-on con il prodotto che lo vende meglio nello stesso periodo. La stima vale se si recupera metà della distanza, ed è espressa in margine mensile.</p>
+    <div id="opps"></div>
+  </section>
+
+  <section class="panel needs-data" hidden>
+    <h2>Andamento settimanale</h2>
+    <p class="note">Ogni punto è una settimana. La linea aiuta a distinguere un calo reale da una giornata storta.</p>
+    <div class="trends" id="trends"></div>
+  </section>
+
+  <section class="panel needs-data" hidden>
+    <h2>Quante pietre per gioiello</h2>
+    <p class="note">Distribuzione sull'intero storico. La barra piena indica il numero massimo di pietre che la scheda prodotto consente: se molti clienti ci arrivano, il limite sta frenando la spesa.</p>
+    <div class="depth" id="depth"></div>
+  </section>
+
+  <section class="panel needs-data" hidden>
+    <h2>Test A/B del configuratore</h2>
+    <p class="note">Attach rate delle pietre sul prodotto sotto test, per braccio. I bracci sono in ordine fisso e senza vincitore: accanto a ogni risultato c'è la sua affidabilità, perché con poche decine di ordini una differenza di pochi punti è rumore.</p>
+    <div id="ab"></div>
+  </section>
+
+  <footer id="footer"></footer>
+</div>
+<div class="tip" id="tip"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
