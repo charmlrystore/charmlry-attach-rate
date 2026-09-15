@@ -89,6 +89,10 @@ class Shopify:
         self.version = os.environ.get("SHOPIFY_API_VERSION", "2026-07").strip()
         if not self.shop or not self.token:
             sys.exit("Servono SHOPIFY_SHOP e SHOPIFY_ADMIN_TOKEN nell'ambiente (repository secrets su GitHub).")
+        self.shop = re.sub(r"^https?://", "", self.shop).strip("/")
+        if not self.shop.endswith(".myshopify.com"):
+            log(f"attenzione: SHOPIFY_SHOP='{self.shop}' non è un dominio .myshopify.com (es. nome-negozio.myshopify.com): "
+                f"con il dominio personalizzato l'Admin API di solito risponde 404")
         self.url = f"https://{self.shop}/admin/api/{self.version}/graphql.json"
 
     def gql(self, query: str, variables: dict | None = None, attempts: int = 8) -> dict:
@@ -102,6 +106,12 @@ class Shopify:
                 with urllib.request.urlopen(req, timeout=120) as r:
                     payload = json.loads(r.read().decode())
             except urllib.error.HTTPError as e:
+                if e.code in (401, 403):
+                    sys.exit(f"HTTP {e.code} da Shopify: token non valido oppure custom app senza gli scope "
+                             f"read_orders, read_all_orders, read_products (dopo averli aggiunti va cliccato 'Installa app').")
+                if e.code == 404:
+                    sys.exit(f"HTTP 404 da Shopify: SHOPIFY_SHOP='{self.shop}' non è raggiungibile. "
+                             f"Serve il dominio nome-negozio.myshopify.com (Impostazioni → Domini).")
                 if e.code in (429, 500, 502, 503, 504) and attempt < attempts - 1:
                     wait = float(e.headers.get("Retry-After") or 2 ** attempt)
                     log(f"  HTTP {e.code}, riprovo tra {wait:.0f}s")
