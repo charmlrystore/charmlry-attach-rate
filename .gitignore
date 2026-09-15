@@ -4,3 +4,4 @@ __pycache__/
 _site/
 *.jsonl
 .env
+.claude/
