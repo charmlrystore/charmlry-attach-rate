@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "generated": "2026-09-11",
-  "through": "2026-09-07",
+  "generated": "2026-09-15",
+  "through": "2026-09-14",
   "months": [
     "2026-01",
     "2026-02",
@@ -13,5 +13,5 @@
     "2026-08",
     "2026-09"
   ],
-  "source": "prototype-seed"
+  "source": "collect.py"
 }
