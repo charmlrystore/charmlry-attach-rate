@@ -8,9 +8,12 @@ Comandi
   python3 collect.py discover                                        elenca il catalogo e i configurabili non mappati
 
 Variabili d'ambiente (mai nel client, mai nel repo):
-  SHOPIFY_SHOP           es. charmlry.myshopify.com
-  SHOPIFY_ADMIN_TOKEN    token Admin API (scope read_orders + read_all_orders, read_products)
-  SHOPIFY_API_VERSION    default 2026-07
+  SHOPIFY_SHOP             es. nome-negozio.myshopify.com
+  SHOPIFY_CLIENT_ID        app creata nel Dev Dashboard (dev.shopify.com) e installata sul negozio: il token
+  SHOPIFY_CLIENT_SECRET    si ottiene a ogni esecuzione (client credentials grant, dura 24 ore)
+  SHOPIFY_ADMIN_TOKEN      in alternativa: token permanente shpat_… di una custom app creata dall'admin
+  SHOPIFY_API_VERSION      default 2026-07
+Scope necessari in entrambi i casi: read_orders, read_all_orders (oltre 60 giorni), read_products.
 
 Output: data/YYYY-MM.json (un file per mese, schema del brief) + data/index.json (manifest letto dalla pagina).
 Solo aggregati: nessun ordine singolo, nessun dato personale.
@@ -83,17 +86,54 @@ def load_cfg(path: str | None = None) -> Cfg:
 
 # ----------------------------------------------------------------------------- client Shopify
 class Shopify:
+    """Client Admin API. Due modi di autenticarsi, in ordine di preferenza:
+      - SHOPIFY_CLIENT_ID + SHOPIFY_CLIENT_SECRET: app creata nel Dev Dashboard (dev.shopify.com) e installata sul negozio;
+        il token si ottiene a ogni esecuzione con il client credentials grant (dura 24 ore, quindi non si salva mai);
+      - SHOPIFY_ADMIN_TOKEN: token permanente `shpat_…` di una custom app creata dall'admin del negozio."""
+
     def __init__(self):
         self.shop = os.environ.get("SHOPIFY_SHOP", "").strip()
-        self.token = os.environ.get("SHOPIFY_ADMIN_TOKEN", "").strip()
         self.version = os.environ.get("SHOPIFY_API_VERSION", "2026-07").strip()
-        if not self.shop or not self.token:
-            sys.exit("Servono SHOPIFY_SHOP e SHOPIFY_ADMIN_TOKEN nell'ambiente (repository secrets su GitHub).")
+        client_id = os.environ.get("SHOPIFY_CLIENT_ID", "").strip()
+        client_secret = os.environ.get("SHOPIFY_CLIENT_SECRET", "").strip()
+        self.token = os.environ.get("SHOPIFY_ADMIN_TOKEN", "").strip()
+        if not self.shop:
+            sys.exit("Serve SHOPIFY_SHOP nell'ambiente (repository secrets su GitHub), es. nome-negozio.myshopify.com.")
         self.shop = re.sub(r"^https?://", "", self.shop).strip("/")
         if not self.shop.endswith(".myshopify.com"):
             log(f"attenzione: SHOPIFY_SHOP='{self.shop}' non è un dominio .myshopify.com (es. nome-negozio.myshopify.com): "
                 f"con il dominio personalizzato l'Admin API di solito risponde 404")
         self.url = f"https://{self.shop}/admin/api/{self.version}/graphql.json"
+        if client_id and client_secret:
+            log("autenticazione: client credentials (app del Dev Dashboard)")
+            self.token = self.client_credentials_token(client_id, client_secret)
+        elif self.token:
+            if not self.token.startswith("shpat_"):
+                log(f"attenzione: SHOPIFY_ADMIN_TOKEN inizia con '{self.token[:6]}…', il token di accesso Admin inizia con 'shpat_' "
+                    f"(un valore 'shpss_' è il Client secret: va in SHOPIFY_CLIENT_SECRET insieme a SHOPIFY_CLIENT_ID)")
+            log("autenticazione: token Admin API della custom app")
+        else:
+            sys.exit("Servono SHOPIFY_CLIENT_ID + SHOPIFY_CLIENT_SECRET (app del Dev Dashboard) oppure SHOPIFY_ADMIN_TOKEN "
+                     "(custom app creata dall'admin), nei repository secrets su GitHub.")
+
+    def client_credentials_token(self, client_id: str, client_secret: str) -> str:
+        body = json.dumps({"client_id": client_id, "client_secret": client_secret, "grant_type": "client_credentials"}).encode()
+        req = urllib.request.Request(f"https://{self.shop}/admin/oauth/access_token", data=body, method="POST",
+                                     headers={"Content-Type": "application/json", "Accept": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                payload = json.loads(r.read().decode())
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode(errors="replace")[:300]
+            if e.code == 404:
+                sys.exit(f"HTTP 404 da Shopify: SHOPIFY_SHOP='{self.shop}' non è raggiungibile (serve nome-negozio.myshopify.com).")
+            sys.exit(f"HTTP {e.code} nel client credentials grant: Client ID/secret sbagliati oppure app non ancora installata "
+                     f"su {self.shop} (Dev Dashboard → Distribution → link di installazione). Dettaglio: {detail}")
+        token = payload.get("access_token")
+        if not token:
+            sys.exit(f"risposta senza access_token dal client credentials grant: {payload}")
+        log(f"  token ottenuto, scope: {payload.get('scope', '?')}")
+        return token
 
     def gql(self, query: str, variables: dict | None = None, attempts: int = 8) -> dict:
         body = json.dumps({"query": query, "variables": variables or {}}).encode()

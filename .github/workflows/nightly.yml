@@ -13,7 +13,8 @@ on:
         type: boolean
         default: false
 
-# Il token Shopify vive nei repository secrets (SHOPIFY_SHOP, SHOPIFY_ADMIN_TOKEN): non entra mai nel sito pubblicato.
+# Le credenziali Shopify vivono nei repository secrets (SHOPIFY_SHOP + SHOPIFY_CLIENT_ID/SHOPIFY_CLIENT_SECRET, oppure
+# SHOPIFY_ADMIN_TOKEN): non entrano mai nel sito pubblicato.
 permissions:
   contents: write
   pages: write
@@ -39,6 +40,8 @@ jobs:
       - name: Raccolta dati da Shopify
         env:
           SHOPIFY_SHOP: ${{ secrets.SHOPIFY_SHOP }}
+          SHOPIFY_CLIENT_ID: ${{ secrets.SHOPIFY_CLIENT_ID }}
+          SHOPIFY_CLIENT_SECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
           SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
         run: |
           if [ "${{ inputs.backfill }}" = "true" ]; then

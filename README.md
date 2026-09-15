@@ -20,15 +20,23 @@ Il browser non chiama mai l'Admin API: legge solo i JSON statici. Il token vive 
 
 ## Messa in funzione
 
-1. **Custom app Shopify** (Impostazioni → App e canali di vendita → Sviluppa app) con gli scope
-   `read_orders`, `read_all_orders` (serve per andare oltre 60 giorni), `read_products`. Copiare il token Admin API.
-2. **Secrets del repository**: `SHOPIFY_SHOP` (es. `charmlry.myshopify.com`) e `SHOPIFY_ADMIN_TOKEN`.
+1. **App Shopify**, in uno dei due modi:
+   - *Dev Dashboard* ([dev.shopify.com](https://dev.shopify.com)) → la tua app → scope `read_orders`, `read_all_orders`,
+     `read_products` (più le richieste di accesso *Read all orders* e *Protected customer data*, concesse subito per le
+     app a distribuzione personalizzata) → *Distribution → Custom distribution* con il dominio `.myshopify.com` del
+     negozio → apri il link di installazione e installa. Servono **Client ID** e **Client secret** (`shpss_…`): il token
+     viene richiesto a ogni esecuzione con il client credentials grant e dura 24 ore.
+   - *Admin del negozio* (Impostazioni → App e canali di vendita → Sviluppa app), se ancora disponibile: stessi scope →
+     *Installa app* → **Token di accesso all'API Admin** (`shpat_…`), permanente.
+2. **Secrets del repository**: `SHOPIFY_SHOP` (es. `nome-negozio.myshopify.com`) più `SHOPIFY_CLIENT_ID` e
+   `SHOPIFY_CLIENT_SECRET` (Dev Dashboard) oppure `SHOPIFY_ADMIN_TOKEN` (custom app dall'admin). Se sono presenti
+   Client ID e secret, hanno la precedenza.
 3. **Backfill storico, una volta sola**. I file in `data/` sono il seed incorporato nel prototipo (fino al 7 settembre,
    senza distribuzione giornaliera delle pietre né dati A/B): il giro notturno si rifiuta di partire finché non
    viene sostituito dal backfill. Dal tab Actions lanciare *Attach rate · aggiornamento notturno* con
    `backfill = true`, oppure in locale:
    ```bash
-   SHOPIFY_SHOP=… SHOPIFY_ADMIN_TOKEN=… python3 collect.py backfill --from 2026-01-01
+   SHOPIFY_SHOP=… SHOPIFY_CLIENT_ID=… SHOPIFY_CLIENT_SECRET=… python3 collect.py backfill --from 2026-01-01
    ```
    Circa 5 minuti per ~42.000 ordini (bulk operation, JSONL ~55 MB). Il JSONL scaricato resta in `/tmp`:
    per rielaborarlo senza rilanciare la bulk, `python3 collect.py backfill --jsonl /tmp/charmlry-orders-2026-01-01.jsonl`.
