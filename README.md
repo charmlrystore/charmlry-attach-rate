@@ -32,8 +32,8 @@ Il browser non chiama mai l'Admin API: legge solo i JSON statici. Il token vive 
    `SHOPIFY_CLIENT_SECRET` (Dev Dashboard) oppure `SHOPIFY_ADMIN_TOKEN` (custom app dall'admin). Se sono presenti
    Client ID e secret, hanno la precedenza.
 3. **Backfill storico, una volta sola**. I file in `data/` sono il seed incorporato nel prototipo (fino al 7 settembre,
-   senza distribuzione giornaliera delle pietre né dati A/B): il giro notturno si rifiuta di partire finché non
-   viene sostituito dal backfill. Dal tab Actions lanciare *Attach rate · aggiornamento notturno* con
+   senza distribuzione giornaliera delle pietre né dati A/B): il primo giro del workflow lo riconosce e fa da solo
+   il backfill; in seguito lo si può ripetere dal tab Actions lanciando *Attach rate · aggiornamento notturno* con
    `backfill = true`, oppure in locale:
    ```bash
    SHOPIFY_SHOP=… SHOPIFY_CLIENT_ID=… SHOPIFY_CLIENT_SECRET=… python3 collect.py backfill --from 2026-01-01

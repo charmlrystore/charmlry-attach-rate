@@ -44,7 +44,9 @@ jobs:
           SHOPIFY_CLIENT_SECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
           SHOPIFY_ADMIN_TOKEN: ${{ secrets.SHOPIFY_ADMIN_TOKEN }}
         run: |
-          if [ "${{ inputs.backfill }}" = "true" ]; then
+          # backfill se richiesto a mano o se data/ contiene ancora il seed del prototipo (primo giro)
+          if [ "${{ inputs.backfill }}" = "true" ] || grep -q '"prototype-seed"' data/index.json; then
+            echo "::notice::eseguo il backfill completo"
             python3 collect.py backfill
           else
             python3 collect.py daily --days "${{ inputs.days || '7' }}"
