@@ -230,10 +230,26 @@ class Storage(unittest.TestCase):
             self.assertIsNone(aug["stonesFrom"]["Mens cord"])
 
     def test_seed_del_prototipo_riconosciuto(self):
-        store, source = collect.load_store(os.path.join(collect.HERE, "data"), cfg)
-        self.assertEqual(source, "prototype-seed")
-        self.assertEqual(len(store), 250)
-        self.assertIsNone(store["2026-01-01"]["lines"]["Collane"]["distDays"])
+        # un mensile "prototype-seed" (senza distDays) in una cartella temporanea: non dipende dal contenuto di data/
+        seed = {
+            "schema": 1, "source": "prototype-seed", "generated": "2026-09-11", "month": "2026-09",
+            "days": ["2026-09-01", "2026-09-02"], "orders": [3, 4], "revenue": [177.0, 236.0],
+            "noAddon": [2, 3], "stoneRev": [8.9, 0.0],
+            "cart": {k: {"orders": [0, 1], "rev": [0.0, 8.9]} for k in ("scratch", "giftbox", "warranty", "tip")},
+            "lines": {"Collane": {"from": "2026-01-01", "rows": [3, 4], "stoneRows": [1, 0], "stones": [2, 0],
+                                  "orders": [3, 4], "scratch": [0, 1], "giftbox": [0, 0], "warranty": [0, 0],
+                                  "tip": [0, 0], "dist": [1, 1, 0, 0, 0, 0], "cap": 6}},
+            "stonesFrom": {"Collane": "2026-01-01"}, "costs": {"stone": 1.5},
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            with open(os.path.join(tmp, "2026-09.json"), "w", encoding="utf-8") as f:
+                json.dump(seed, f)
+            store, source = collect.load_store(tmp, cfg)
+            self.assertEqual(source, "prototype-seed")
+            self.assertEqual(sorted(store), ["2026-09-01", "2026-09-02"])
+            self.assertEqual(store["2026-09-01"]["lines"]["Collane"]["stoneRows"], 1)
+            self.assertIsNone(store["2026-09-01"]["lines"]["Collane"]["distDays"], "seed senza distribuzione giornaliera")
+            self.assertEqual(store["2026-09-02"]["ab"]["eligible"], 0, "seed senza blocco ab: tutto a zero")
 
 
 class JSONL(unittest.TestCase):
